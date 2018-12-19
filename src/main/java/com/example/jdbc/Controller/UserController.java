@@ -1,6 +1,8 @@
 package com.example.jdbc.Controller;
 
+import com.example.jdbc.mapper.Imgmapper;
 import com.example.jdbc.mapper.Usermapper;
+import com.example.jdbc.pojo.Imgs;
 import com.example.jdbc.pojo.Result;
 import com.example.jdbc.pojo.User;
 import com.example.jdbc.service.UserService;
@@ -8,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.configurationprocessor.json.JSONObject;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.ClassUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -24,6 +27,8 @@ public class UserController {
     Usermapper usermapper;
     @Autowired
     UserService userService;
+    @Autowired
+    Imgmapper imgmapper;
 //    查询用户
     @GetMapping(value = "/showuser")
     public Result showuser(Model model){
@@ -64,9 +69,14 @@ public class UserController {
         if (file.isEmpty()) {
             return "上传失败，请选择文件";
         }
-        System.out.println(file);
+
+        System.out.println(request.getRequestURL());
         String fileName = file.getOriginalFilename();
         String filePath = "E:\\projectDATA\\img\\";
+        String path = ClassUtils.getDefaultClassLoader().getResource("").getPath()+"static/";
+        Imgs img = new Imgs();
+        img.setUrl("http://localhost:8081/"+fileName);
+        imgmapper.addImg(img);
         File dest = new File(filePath + fileName);
         try {
             file.transferTo(dest);
@@ -75,5 +85,11 @@ public class UserController {
 
         }
         return "上传失败！";
+    }
+    @GetMapping("/showimg")
+    public Result showimg(){
+         List<Imgs> imgsList = imgmapper.findImgs();
+         Result result = new Result(true,200,"成功了！",imgsList);
+         return result;
     }
 }
